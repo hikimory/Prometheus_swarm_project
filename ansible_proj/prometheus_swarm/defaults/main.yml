@@ -1,0 +1,36 @@
+---
+# Installation
+install_packages: false
+# true
+# false
+
+# Define a custom list of packages to install
+prep_packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - gnupg-agent
+  - software-properties-common
+  - python3-pip
+
+pip_packages:
+  - docker
+  - docker-compose
+
+docker_packages:
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+
+swarm_stacks_remote_dir: /opt/
+swarm_stacks_local_dir: swarm_stacks/
+swarm_state: 'create-deploy'
+
+deploy_stack_options: []
+# - stack_name: "name"
+#   filename: "filename"
+
+delete_all_stacks: true
+
+remove_stack_options: []
+# - stack_name: "name"

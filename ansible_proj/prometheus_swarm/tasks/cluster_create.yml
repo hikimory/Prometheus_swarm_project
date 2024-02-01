@@ -1,0 +1,18 @@
+---
+- name: Init Swarm
+  when: inventory_hostname in groups['managers']
+  command: docker swarm init --advertise-addr {{ ansible_host }} 
+  register: swarm_init_output
+  until: swarm_init_output.rc == 0
+  retries: 10 
+  delay: 30
+  ignore_errors: true
+
+- name: Save join token for workers
+  when: inventory_hostname in groups['workers']
+  set_fact:
+    join_token: "{{ hostvars[groups['managers'][0]]['swarm_init_output']['stdout_lines'][-3] }}"
+
+- name: Join worker nodes to the swarm
+  when: inventory_hostname in groups['workers']
+  command: "{{ join_token }}"

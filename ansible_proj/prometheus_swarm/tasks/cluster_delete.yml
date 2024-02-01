@@ -1,0 +1,36 @@
+---
+- name: Get list of stacks
+  when: inventory_hostname in groups['managers']
+  shell: "docker stack ls | awk 'NR>1 {print $1}'"
+  register: stack_list
+  ignore_errors: true
+  changed_when: false
+  
+- name: Remove all stacks
+  when: inventory_hostname in groups['managers'] and stack_list.stdout_lines != []
+  shell: "docker stack rm {{ item }}"
+  with_items: "{{ stack_list.stdout_lines }}"
+  ignore_errors: true
+
+- name: Get current list of nodes
+  when: inventory_hostname in groups['managers'] 
+  command: docker node ls --format '{% raw %}{{ .Hostname }}{% endraw %}'
+  register: node_list
+  ignore_errors: true
+  changed_when: false
+
+- name: Leave nodes from the cluster
+  when: inventory_hostname in groups['workers']
+  command: docker swarm leave
+  ignore_errors: true
+
+- name: Remove nodes from the cluster
+  when: inventory_hostname == groups['managers'] 
+  command: docker node rm --force {{ item }}
+  with_items: "{{ node_list }}"
+  ignore_errors: true
+
+- name: Leave manager from the cluster
+  when: inventory_hostname in groups['managers'] 
+  command: docker swarm leave --force
+  ignore_errors: true

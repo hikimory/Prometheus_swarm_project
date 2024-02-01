@@ -1,0 +1,19 @@
+---
+- name: Get list of stacks
+  when: inventory_hostname in groups['managers'] and delete_all_stacks | bool
+  shell: "docker stack ls | awk 'NR>1 {print $1}'"
+  register: stack_list
+  ignore_errors: true
+  changed_when: false
+  
+- name: Remove all stacks
+  when: inventory_hostname in groups['managers'] and stack_list.stdout_lines != [] and delete_all_stacks | bool
+  shell: "docker stack rm {{ item }}"
+  with_items: "{{ stack_list.stdout_lines }}"
+  ignore_errors: true
+
+- name: Remove stacks
+  when: inventory_hostname in groups['managers'] and delete_all_stacks | bool == false
+  command: "docker stack rm {{ item.stack_name }}" 
+  with_items: "{{remove_stack_options}}"
+  ignore_errors: true

@@ -1,0 +1,15 @@
+---
+- name: Copy stacks to manager
+  when: inventory_hostname in groups['managers']
+  copy:
+    src: "{{ swarm_stacks_local_dir }}"
+    dest: "{{ swarm_stacks_remote_dir }}"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Deploy stacks
+  when: inventory_hostname in groups['managers']
+  command: "docker stack deploy -c {{swarm_stacks_remote_dir}}{{ item.filename }} {{ item.stack_name }}" 
+  with_items: "{{ deploy_stack_options }}"
+  ignore_errors: true

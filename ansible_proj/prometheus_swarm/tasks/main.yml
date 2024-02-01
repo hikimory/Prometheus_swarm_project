@@ -1,0 +1,14 @@
+- include_tasks: install_docker.yml
+  when: install_packages
+
+- include_tasks: cluster_create.yml
+  when: swarm_state == 'create' or swarm_state == 'create-deploy'
+
+- include_tasks: stacks_deploy.yml
+  when: swarm_state == 'deploy' or swarm_state == 'create-deploy'
+
+- include_tasks: stacks_remove.yml
+  when: swarm_state == 'remove' or swarm_state == 'remove-delete'
+
+- include_tasks: cluster_delete.yml
+  when: swarm_state == 'delete' or swarm_state == 'remove-delete'

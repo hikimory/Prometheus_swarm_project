@@ -1,0 +1,53 @@
+- name: Install required system packages
+  apt:
+    name: "{{ prep_packages }}"
+    state: present
+    update_cache: yes
+  tags:
+    - docker
+  
+# curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+- name: Add Dockers official GPG key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+  tags:
+    - docker
+  
+# sudo apt-key fingerprint 0EBFCD88
+- name: Verify that we have the key with the fingerprint
+  apt_key:
+    id: 0EBFCD88
+    state: present
+  tags:
+    - docker
+
+- name: Get Ubuntu Version
+  shell: lsb_release -cs
+  register: ubuntu_version
+  changed_when: false
+  
+# sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable"
+- name: Set up the stable repository
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ubuntu_version.stdout}} stable
+    state: present
+    update_cache: yes
+  tags:
+    - docker
+  
+# sudo apt-get install docker-ce
+- name: Install Docker Engine and CLI
+  apt:
+    name: "{{ docker_packages }}"
+    state: latest
+    update_cache: yes
+  notify: Start docker on boot
+  tags:
+    - docker
+
+- name: Install Docker Module for Python
+  pip:
+    name: "{{ pip_packages }}"
+  tags:
+    - docker
